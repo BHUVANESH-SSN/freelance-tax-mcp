@@ -9,7 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from freelance_tax_mcp.config import get_settings
-from freelance_tax_mcp.memory.db import init_db
+from freelance_tax_mcp.memory.db import get_connection, init_db
 from freelance_tax_mcp.tools.advance_tax import (
 	estimate_advance_tax_tool,
 	set_deadline_reminder_tool,
@@ -175,7 +175,36 @@ def health() -> dict[str, Any]:
 		"auth_mode": "oauth2.1_placeholder" if SETTINGS.enable_auth else "disabled",
 	}
 
+@mcp.resource("db://{user_id}/invoices")
+def get_user_invoices(user_id: str) -> str:
+    """Resource to let the AI read all past invoices for a user."""
+    conn = get_connection(SETTINGS.db_path)
+    cur = conn.execute("SELECT * FROM invoices WHERE user_id = ?", (user_id,))
+    invoices = [dict(row) for row in cur.fetchall()]
+    conn.close()
+    
+    import json
+    return json.dumps(invoices, indent=2)
 
+from mcp.types import TextContent, UserMessage
+
+
+@mcp.prompt("quarterly_tax_review")
+def quarterly_tax_review_prompt(user_id: str) -> list[UserMessage]:
+    """A pre-made prompt template for doing a full quarterly tax analysis."""
+    
+    instruction = (
+        f"You are an expert Indian CA. Please use the 'check_tds_liability' "
+        f"and 'estimate_advance_tax' tools to analyze the current Q1 tax "
+        f"situation for user '{user_id}'. Look for any missing advance tax "
+        f"payments and draft a polite warning if they are falling behind."
+    )
+    
+    return [
+        UserMessage(
+            content=[TextContent(type="text", text=instruction)]
+        )
+    ]
 def main() -> None:
 	mcp.run(transport="stdio")
 

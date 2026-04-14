@@ -4,7 +4,13 @@ from pathlib import Path
 from typing import Any
 
 from freelance_tax_mcp.memory.db import get_connection
-from freelance_tax_mcp.memory.models import Client, Invoice, Reminder, Transaction, UserProfile
+from freelance_tax_mcp.memory.models import (
+	Client,
+	Invoice,
+	Reminder,
+	Transaction,
+	UserProfile,
+)
 
 
 def upsert_user_profile(db_path: Path, profile: UserProfile) -> None:

@@ -1,24 +1,21 @@
-import sqlite3
-from pathlib import Path
 import sys
+from pathlib import Path
 
-# Add project root to path so we can import src
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.freelance_tax_mcp.memory.db import get_connection
+
 
 def seed_data(db_path: Path):
     conn = get_connection(db_path)
     user_id = "user_001"
     
     with conn:
-        # Insert a user profile
         conn.execute(
             "INSERT OR IGNORE INTO user_profiles (user_id, full_name, gst_number, tax_regime, tax_year) VALUES (?, ?, ?, ?, ?)",
             (user_id, "Jane Doe (Freelancer)", "22AAAAA0000A1Z5", "new", "2025-2026")
         )
         
-        # Insert clients
         conn.execute(
             "INSERT OR IGNORE INTO clients (user_id, client_name, client_email) VALUES (?, ?, ?)",
             (user_id, "Acme Corp", "accounts@acme.com")
@@ -28,7 +25,6 @@ def seed_data(db_path: Path):
             (user_id, "Globex Inc", "finance@globex.com")
         )
         
-        # Insert invoices
         conn.execute(
             "INSERT OR IGNORE INTO invoices (user_id, invoice_number, client_name, amount, issue_date, due_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (user_id, "INV-2026-001", "Acme Corp", 50000.0, "2026-04-01", "2026-04-15", "issued")
@@ -38,7 +34,6 @@ def seed_data(db_path: Path):
             (user_id, "INV-2026-002", "Globex Inc", 75000.0, "2026-04-10", "2026-04-25", "paid")
         )
         
-        # Insert transactions / expenses
         conn.execute(
             "INSERT OR IGNORE INTO transactions (user_id, txn_type, amount, txn_date, notes) VALUES (?, ?, ?, ?, ?)",
             (user_id, "expense", 2500.0, "2026-04-05", "Software subscriptions")
@@ -48,7 +43,6 @@ def seed_data(db_path: Path):
             (user_id, "expense", 12000.0, "2026-04-12", "New Monitor and accessories")
         )
         
-        # Insert reminders
         conn.execute(
             "INSERT OR IGNORE INTO reminders (user_id, title, due_date) VALUES (?, ?, ?)",
             (user_id, "File Advance Tax for Q1", "2026-06-15")
